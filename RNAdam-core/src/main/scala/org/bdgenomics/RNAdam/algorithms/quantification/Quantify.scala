@@ -45,7 +45,7 @@ object Quantify extends Serializable with Logging {
             transcripts: RDD[Transcript],
             kmerLength: Int,
             maxIterations: Int,
-            calibrateKmerBias: Boolean = true): RDD[(Transcript, Double)] = {
+            calibrate: Boolean = true): RDD[(Transcript, Double)] = {
 
     // cache transcripts, then compute transcript lengths
     transcripts.cache()
@@ -53,7 +53,7 @@ object Quantify extends Serializable with Logging {
 
     // cut reads into kmers and then calibrate if desired
     val readKmers = reads.adamCountKmers(kmerLength)
-    val calibratedKmers = if (calibrateKmerBias) {
+    val calibratedKmers = if (calibrate) {
       Tare.calibrateKmers(readKmers)
     } else {
       readKmers
@@ -89,6 +89,11 @@ object Quantify extends Serializable with Logging {
       alpha = e(muHat)
       muHat = m(alpha, tLen, kmerLength, relNumKmersInEC)
     })
+
+    // perform calibration to correct for transcript length bias, if desired
+    //if (calibrate) {
+    //  muHat = Tare.calibrateTxLenBias(muHat, tLen)
+    //}
 
     // join transcripts up and return
     joinTranscripts(transcripts, muHat)
