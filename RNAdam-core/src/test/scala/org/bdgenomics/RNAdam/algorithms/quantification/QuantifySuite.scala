@@ -397,7 +397,8 @@ class QuantifySuite extends SparkFunSuite {
         Iterable(),
         Iterable()))),
       20,
-      20).collect
+      20,
+      false).collect
       .map(kv => (kv._1.id, kv._2))
       .toMap
 
@@ -455,7 +456,8 @@ class QuantifySuite extends SparkFunSuite {
         Iterable(),
         Iterable()))),
       20,
-      50).collect
+      50,
+      false).collect
       .map(kv => (kv._1.id, kv._2))
       .toMap
 
