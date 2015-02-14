@@ -64,7 +64,7 @@ class TareSuite extends SparkFunSuite {
     assert(fpEquals(feature.features(15), 0.5))
     (1 to 14).foreach(i => assert(fpEquals(feature.features(i), 0.0)))
   }
-  /*
+
   sparkTest("generate biased kmers and try correcting their counts") {
     val sampleString = TranscriptGenerator.generateString(500, new Random(121212L))
 
@@ -111,22 +111,12 @@ class TareSuite extends SparkFunSuite {
     val b: Double = calMuHat.filter((x => x._1 == "b")).first()._2
     val c: Double = calMuHat.filter((x => x._1 == "c")).first()._2
     val d: Double = calMuHat.filter((x => x._1 == "d")).first()._2
-    println(a + " ?= 0.25")
-    println(b + " ?= 0.25")
-    println(c + " ?= 0.25")
-    println(d + " ?= 0.25")
     assert(fpEquals(a, 0.25))
     assert(fpEquals(b, 0.25))
     assert(fpEquals(c, 0.25))
     assert(fpEquals(d, 0.25))
   }
-*/
 
-  /**
-   * This test will always pass, even if there are problems with
-   * Tare.calibrateTxLenBias()   If anything is printed out
-   * to standard output by fpEquals(), there is a problem!
-   */
   sparkTest("test of calibrateTxLenBias for small data size") {
     test(10)
   }
@@ -148,11 +138,9 @@ class TareSuite extends SparkFunSuite {
     val tLen: scala.collection.Map[String, Long] = (new scala.collection.immutable.HashMap()).++(r)
     val muHat: RDD[(String, Double, Iterable[Long])] = sc.parallelize(r).map(x => (x._1, x._2 / sum, itLong))
 
-    // Ensures that NaN is not due to input.
-    muHat.foreach(x => if (x._2 == Double.NaN) { throw new Exception("_") })
-    println("sum= " + sum)
-    muHat.foreach(println)
-    println(tLen.mkString(", "))
+    //println("sum= " + sum)
+    //muHat.foreach(println)
+    //println(tLen.mkString(", "))
 
     // Runs Tare.calibrateTxLenBias()
     val calMuHat: RDD[(String, Double, Iterable[Long])] = Tare.calibrateTxLenBias(muHat, tLen)
@@ -160,39 +148,7 @@ class TareSuite extends SparkFunSuite {
     // Checks for correct answer. Since all variation in abundance
     // is due to transcript length, all transcript should have equal
     // calibrated abundance.
-    calMuHat.collect().foreach(x => fpEquals(x._2, 1.0 / (dataSize + 1)))
+    calMuHat.collect().foreach(x => assert(fpEquals(x._2, 1.0 / (dataSize + 1))))
   }
-
-  /*
-  sparkTest("test of linear regression (DEBUG)") {
-    // These are the points representing log(abundance) vs log(length) for each of the transcripts a, b, c, and d in the above tests.
-    val a = new org.apache.spark.mllib.regression.LabeledPoint(-1.2729656758128873, org.apache.spark.mllib.linalg.Vectors.dense(3.332204510175204))
-    val b = new org.apache.spark.mllib.regression.LabeledPoint(-1.9661128563728327, org.apache.spark.mllib.linalg.Vectors.dense(2.833213344056216))
-    val c = new org.apache.spark.mllib.regression.LabeledPoint(-1.171182981502945, org.apache.spark.mllib.linalg.Vectors.dense(3.4339872044851463))
-    val d = new org.apache.spark.mllib.regression.LabeledPoint(-1.4271163556401458, org.apache.spark.mllib.linalg.Vectors.dense(3.1780538303479458))
-
-    val points = sc.parallelize(Seq(a, b, c, d))
-
-    // Train the model.
-    val model = new org.apache.spark.mllib.regression.LinearRegressionWithSGD().setIntercept(true).run(points)
-
-    println("Transcript a:")
-    println("log of length: " + a.features)
-    println("log of abundance: " + a.label)
-    println("predicted log of abundance: " + model.predict(a.features))
-    println("Transcript b:")
-    println("log of length: " + b.features)
-    println("log of abundance: " + b.label)
-    println("predicted log of abundance: " + model.predict(b.features))
-    println("Transcript c:")
-    println("log of length: " + c.features)
-    println("log of abundance: " + c.label)
-    println("predicted log of abundance: " + model.predict(c.features))
-    println("Transcript d:")
-    println("log of length: " + d.features)
-    println("log of abundance: " + d.label)
-    println("predicted log of abundance: " + model.predict(d.features))
-  }
-*/
 
 }

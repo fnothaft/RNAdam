@@ -23,6 +23,7 @@ import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.regression.{ LabeledPoint, LinearRegressionModel, LinearRegressionWithSGD }
 import scala.math.{ exp, log }
+import org.jblas.{ DoubleMatrix, Solve }
 
 object Tare extends Serializable {
 
@@ -147,79 +148,42 @@ object Tare extends Serializable {
    */
   def calibrateTxLenBias(muHat: RDD[(String, Double, Iterable[Long])],
                          tLen: scala.collection.Map[String, Long]): RDD[(String, Double, Iterable[Long])] = {
-    // Set up a linear regression model with stochastic gradient descent.
-    //    val linReg: LinearRegressionWithSGD = new LinearRegressionWithSGD()
-    //linReg.setIntercept(true)
+    // A local (not distributed) copy of muHat without the equivalence
+    // class ids. Removing these ids saves space since they are
+    // not used here.
+    val local: Array[(String, Double)] = muHat.map(mh => (mh._1, mh._2)).collect()
 
-    // Generate the points to give to the model, keeping them associated with
-    // the information in muHat to allow for easier processing afterwards.
-    val muHatPoints: RDD[(String, LabeledPoint, Iterable[Long])] = muHat.map((mh: (String, Double, Iterable[Long])) => {
-
-      //println("log of abundance of transcript " + mh._1 + " : " + log(mh._2)) //DEBUG
-      //println("log of length of transcript " + mh._1 + " : " + log(tLen(mh._1).toDouble)) //DEBUG
-
-      (mh._1, new LabeledPoint(log(mh._2), Vectors.dense(log(tLen(mh._1).toDouble))), mh._3)
-    })
-
-    // Cache this mapping since it will be used repeatedly.
-    muHatPoints.cache()
-
-    // Train the model.
-    val model: LinearRegressionModel = LinearRegressionWithSGD.train(muHatPoints.map((mhpt: (String, LabeledPoint, Iterable[Long])) => mhpt._2), 1000, 0.01, 1.0)
-
-    //println("weights: " + model.weights + " and intercept " + model.intercept) //DEBUG
-
-    // Broadcast the model so that it can be used efficienty by the next step, which is distributed.
-    val bcastModel: Broadcast[LinearRegressionModel] = muHatPoints.context.broadcast(model)
-
-    // Calculate the log of the average abundance. Since all the abundances sum to 1.0
-    // by definition, this is simply 1.0 divided by the number of transcripts.
+    // Calculate the log of the average (mean) abundance.
+    // Since all the abundances sum to 1.0 by definition,
+    // this is simply 1.0 divided by the number of transcripts.
     // Use the fact that log(1.0 / x) = -log(x)
-    val mean: Double = -log(muHatPoints.count().toDouble)
+    val mean: Double = -log(local.length.toDouble)
 
-    // QUESTION: SHOULD THE MEAN BE THE LOG OF THE AVERAGE ABUNDANCE (LIKE IT IS DONE HERE) OR THE AVERAGE OF THE LOG OF THE ABUNDANCES?
+    // Do linear regression by constructing and solving matrix equation.
+    val y: DoubleMatrix = new DoubleMatrix(local.map(mh => log(mh._2)))
+    val slopev: DoubleMatrix = new DoubleMatrix(local.map(mh => log(tLen(mh._1).toDouble)))
+    val intv: DoubleMatrix = DoubleMatrix.ones(local.length)
+    val x: DoubleMatrix = DoubleMatrix.concatHorizontally(slopev, intv)
+    val xt: DoubleMatrix = x.transpose()
+    val xtx: DoubleMatrix = xt.mmul(x)
+    val xty: DoubleMatrix = xt.mmul(y)
+    val soln: DoubleMatrix = Solve.solve(xtx, xty)
+    val slope: Double = soln.get(0, 0)
+    val intercept: Double = soln.get(1, 0)
 
-    // Use this result to calibrate muHat. Having kept the old muHat
-    // information, such as the Iterable[Long] field comes in handy here.
-    // Also normalize the calibrated result so abundances sum to 1.0
-    val calMuHatAcc: org.apache.spark.Accumulator[Double] = muHatPoints.context.accumulator(0.0)
+    // Use the slope and the intercept found through regression
+    // to calibrate transcript abundances to correct for variation
+    // in  transcript lengths. These calibrated abundances may not
+    // add up to 1 because regression was done on a logarithmic scale.
+    // muHat is used here instead of local because in the future, local
+    // might become a sample of muHat instead of a full copy.
+    // Furthermore, doing too much locally may create a larger than
+    // necessary bottleneck in the computation.
+    val calMuHat: RDD[(String, Double, Iterable[Long])] = muHat.map(mh => (mh._1, exp(mean + (((slope * mh._2) + intercept) - mh._2)), mh._3))
 
-    //println("Initial calMuHatAcc value: " + calMuHatAcc.value) //DEBUG
+    val totalAbundance: Double = calMuHat.map(mh => mh._2).reduce((x: Double, y: Double) => x + y)
 
-    val calMuHat: RDD[(String, Double, Iterable[Long])] = muHatPoints.map((mhpt: (String, LabeledPoint, Iterable[Long])) => {
-      val cal: Double = exp(mean + mhpt._2.label - bcastModel.value.predict(mhpt._2.features))
-
-      //println("mean: " + mean) //DEBUG
-      //println("uncalibrated abundance of transcript " + mhpt._1 + ": " + mhpt._2.label) //DEBUG
-
-      //println("length of transcript " + mhpt._1 + " (feature): " + mhpt._2.features) //DEBUG
-
-      /** THE PROBLEM IS HERE **/
-      //println("predicted abundance of transcript " + mhpt._1 + " (very large for some reason): " + bcastModel.value.predict(mhpt._2.features)) //DEBUG
-
-      val corrected: Double = mean + mhpt._2.label - bcastModel.value.predict(mhpt._2.features) //DEBUG
-      println("transcript " + mhpt._1 + " corrected = mean + uncalibrated - predicted: " + corrected) //DEBUG
-      println("transcript " + mhpt._1 + " calibration = exp(corrected): " + cal) //DEBUG
-
-      calMuHatAcc.add(cal)
-      (mhpt._1, cal, mhpt._3)
-    })
-
-    println("points: " + calMuHat.count())
-    val totalCalMuHat: Double = calMuHatAcc.value
-    println("total of calibrated abundances: " + totalCalMuHat) //DEBUG
-
-    val normCalMuHat: RDD[(String, Double, Iterable[Long])] = calMuHat.map((calmh: (String, Double, Iterable[Long])) => {
-
-      println("normalized calibrated abundance of transcript " + calmh._1 + ": " + (calmh._2 / totalCalMuHat)) //DEBUG
-
-      (calmh._1, calmh._2 / totalCalMuHat, calmh._3)
-    })
-
-    // Unpersist muHatPoints. It will not be used any more.
-    muHatPoints.unpersist()
-
-    // Return the normalized calibrated muHats.
-    normCalMuHat
+    // Return the calibrated abundances.
+    calMuHat.map((mh: (String, Double, Iterable[Long])) => (mh._1, mh._2 / totalAbundance, mh._3))
   }
 }

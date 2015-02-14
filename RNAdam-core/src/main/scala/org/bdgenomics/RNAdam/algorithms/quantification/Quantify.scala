@@ -91,9 +91,9 @@ object Quantify extends Serializable with Logging {
     })
 
     // perform calibration to correct for transcript length bias, if desired
-    //if (calibrate) {
-    //  muHat = Tare.calibrateTxLenBias(muHat, tLen)
-    //}
+    if (calibrate) {
+      muHat = Tare.calibrateTxLenBias(muHat, tLen)
+    }
 
     // join transcripts up and return
     joinTranscripts(transcripts, muHat)

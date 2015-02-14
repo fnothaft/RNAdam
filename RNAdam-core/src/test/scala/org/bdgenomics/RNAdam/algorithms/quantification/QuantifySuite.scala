@@ -27,8 +27,12 @@ import scala.math.abs
 
 class QuantifySuite extends SparkFunSuite {
 
-  def fpEquals(a: Double, b: Double, tol: Double = 1e-3): Boolean = {
-    abs(a - b) < tol
+  def fpEquals(a: Double, b: Double, eps: Double = 1e-6): Boolean = {
+    val passed = abs(a - b) <= eps
+    if (!passed) {
+      println("|" + a + " - " + b + "| = " + abs(a - b) + "> " + eps)
+    }
+    passed
   }
 
   sparkTest("test of mapKmersToClasses") {
