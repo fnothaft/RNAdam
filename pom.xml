@@ -344,6 +344,11 @@
         <artifactId>jblas</artifactId>
         <version>1.2.3</version>
       </dependency>
+      <dependency>
+        <groupId>net.fnothaft</groupId>
+        <artifactId>ananas</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 </project>
