@@ -340,6 +340,12 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
+        <groupId>org.apache.spark</groupId>
+        <artifactId>spark-graphx_2.10</artifactId>
+        <version>${spark.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
         <groupId>org.jblas</groupId>
         <artifactId>jblas</artifactId>
         <version>1.2.3</version>
