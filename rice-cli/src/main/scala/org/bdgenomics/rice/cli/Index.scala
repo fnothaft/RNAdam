@@ -61,16 +61,14 @@ class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] wi
       new TwoBitFile(new LocalFileByteAccess(new File(args.genome)))
     }
 
-    // load gene annotations and transform to transcripts
-    val transcripts = LoadingGenes.time {
-      sc.loadGenes(args.genes)
-        .flatMap(_.transcripts)
-        .instrument()
+    // load gene annotations and transform to contig fragments
+    val contigFragments = LoadingGenes.time {
+      ContigFragment.loadFromFile(sc, args.genes)
     }
 
     // run indexing
     val (kmerMap, classMap) = Indexing.time {
-      Indexer(genome, transcripts, args.kmerLength)
+      Indexer(genome, contigFragments, args.kmerLength)
     }
 
     // map to avro classes and save indices
