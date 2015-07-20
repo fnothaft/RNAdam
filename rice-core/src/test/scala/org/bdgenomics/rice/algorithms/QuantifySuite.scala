@@ -25,17 +25,9 @@ import scala.collection.Map
 import scala.collection.immutable.HashMap
 import scala.math.abs
 import org.bdgenomics.utils.io.{ ByteAccess, ByteArrayByteAccess }
-import net.fnothaft.ananas.models.{CanonicalKmer, Intmer, ContigFragment}
+import net.fnothaft.ananas.models.{CanonicalKmer, IntMer, ContigFragment}
 import net.fnothaft.ananas.avro.Kmer
-import net.fnothaft.ananas.debruijn.ColoredDebruijnGraph
-
-class TestingTwoBitFile(byteAccess: ByteAccess) extends ReferenceFile with Serializable {
-  // Test sequence, len = 24
-  val testSeq = "CAATCCTTCGCCGCAGTGCA"
-  override def extract(region: ReferenceRegion): String = {
-    testSeq.substring(region.start.toInt, region.end.toInt)
-  }
-}
+import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
 
 class QuantifySuite extends riceFunSuite {
 
@@ -429,7 +421,7 @@ class QuantifySuite extends riceFunSuite {
     val its = sequence.sliding(kmerLength).map(k => k.sliding(1).toArray)
 
     // Create list of Intmers
-    val imers = its.map(i => Intmer.constructKmer(i))
+    val imers = its.map(i => IntMer.constructKmer(i))
 
     // Create list of Kmers
     val kmers = imers.map(i => Kmer(Backing(1), true, i(0), i(1)))
