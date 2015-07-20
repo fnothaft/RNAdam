@@ -24,7 +24,8 @@ import org.bdgenomics.adam.rdd.ADAMContext._
 import org.bdgenomics.formats.avro.NucleotideContigFragment
 import org.bdgenomics.rice.Timers._
 import org.apache.spark.graphx.Graph
-import net.fnothaft.ananas.{ColoredDeBruijnGraph, ContigFragment}
+import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
+import net.fnothaft.ananas.models.ContigFragment
 
 object Index extends Serializable with Logging {
 
@@ -34,7 +35,7 @@ object Index extends Serializable with Logging {
    * @param contigFragments An RDD containing contigFragments.
    * @return Returns a Graph representing a colored De Bruijn graph of kmers
    */
-  def apply(contigFragments: RDD[ContigFragment]): Graph[xx, Unit] = {
+  def apply(contigFragments: RDD[ContigFragment]): Graph[ColoredKmerVertex, Unit] = {
 
     ColoredDeBruijnGraph.buildFromFragments(contigFragments)
 
