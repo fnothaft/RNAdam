@@ -426,13 +426,13 @@ class QuantifySuite extends riceFunSuite {
 
   def buildContigFragments(sequence : String, kmerLength : Int) : RDD[ContigFragment] = {
     // Create list of Iterator[Char]
-    val its = sequence.sliding(kmerLength).map(k => k.sliding(1))
+    val its = sequence.sliding(kmerLength).map(k => k.sliding(1).toArray)
 
     // Create list of Intmers
     val imers = its.map(i => Intmer.constructKmer(i))
 
     // Create list of Kmers
-    val kmers = imers.map(i => Kmer(Backing(1), true, i._1, i._2))
+    val kmers = imers.map(i => Kmer(Backing(1), true, i.(0), i.(1)))
 
     // Create list of Canonical Kmers:
     val ckmers = kmers.map(k => CanonicalKmer.apply(k)).toArray
