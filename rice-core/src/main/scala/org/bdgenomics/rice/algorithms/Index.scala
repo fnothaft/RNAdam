@@ -24,7 +24,7 @@ import org.bdgenomics.adam.rdd.ADAMContext._
 import org.bdgenomics.formats.avro.NucleotideContigFragment
 import org.bdgenomics.rice.Timers._
 import org.apache.spark.graphx.Graph
-import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
+import net.fnothaft.ananas.debruijn.{ColoredDeBruijnGraph, ColoredKmerVertex}
 import net.fnothaft.ananas.models.ContigFragment
 
 object Index extends Serializable with Logging {
