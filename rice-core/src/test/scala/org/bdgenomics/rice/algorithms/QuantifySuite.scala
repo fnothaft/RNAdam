@@ -424,7 +424,12 @@ class QuantifySuite extends riceFunSuite {
     val imers = its.map(i => IntMer.constructKmer(i))
 
     // Create list of Kmers
-    val kmers = imers.map(i => Kmer(Backing(1), true, i(0), i(1)))
+    val kmers = imers.map(i => { Kmer.newBuilder()
+                                .setFormat(Backing(1))
+                                .setIsOriginal(true)
+                                .setIntKmer(i(0))
+                                .setIntMask(i(1))
+                                .build() } )
 
     // Create list of Canonical Kmers:
     val ckmers = kmers.map(k => CanonicalKmer.apply(k)).toArray
@@ -448,10 +453,10 @@ class QuantifySuite extends riceFunSuite {
     // Assert that all kmers are the same
     val vertices = g.vertices.collect().map(v => (v(0), v(1).kmer.toOriginalString())) // Array of (vertexID, kmerString)
     assert( vertices.forall(v => sequence contains v(1)) )
-    assert(klist.length == sequence.length + 1 - 3)
+    assert(vertices.length == sequence.length + 1 - 3)
 
     // Assert that all edges are appropriate 
-    val edges = g.edges.collect().map(e => (e.srcId, dstId)) // Array of (srcId, dstId)
+    val edges = g.edges.collect().map(e => (e.srcId, e.dstId)) // Array of (srcId, dstId)
     val vmap = vertices.toMap
     assert( edges.forall(e => vmap(e(0)).slice(1, kmerLength) == vmap(e(1)).slice(0, kmerLength-1)) )
 
