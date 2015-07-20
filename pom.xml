@@ -24,7 +24,7 @@
     <parquet.version>1.7.0</parquet.version>
     <spark.version>1.2.1</spark.version>
     <!-- Edit the following line to configure the Hadoop (HDFS) version. -->
-    <utils.version>0.2.3</utils.version>
+    <utils.version>0.2.2</utils.version>
   </properties>
 
   <modules>
@@ -354,6 +354,16 @@
         <groupId>net.fnothaft</groupId>
         <artifactId>ananas</artifactId>
         <version>0.0.1-SNAPSHOT</version>
+        <exclusions>
+         <exclusion>
+           <groupId>org.bdgenomics.utils</groupId>
+           <artifactId>*</artifactId>
+         </exclusion>
+         <exclusion>
+           <groupId>org.bdgenomics.adam</groupId>
+           <artifactId>*</artifactId>
+         </exclusion>
+       </exclusions>
       </dependency>
     </dependencies>
   </dependencyManagement>
