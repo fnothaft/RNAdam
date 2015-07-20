@@ -24,9 +24,10 @@ import org.bdgenomics.rice.utils.{ ReadGenerator, TranscriptGenerator }
 import scala.collection.Map
 import scala.collection.immutable.HashMap
 import scala.math.abs
-import org.bdgenomics.adam.util.ReferenceFile
-import org.bdgenomics.adam.util.{ TwoBitFile }
 import org.bdgenomics.utils.io.{ ByteAccess, ByteArrayByteAccess }
+import net.fnothaft.ananas.models.{CanonicalKmer, Intmer, ContigFragment}
+import net.fnothaft.ananas.avro.Kmer
+import net.fnothaft.ananas.debruijn.ColoredDebruijnGraph
 
 class TestingTwoBitFile(byteAccess: ByteAccess) extends ReferenceFile with Serializable {
   // Test sequence, len = 24
@@ -423,62 +424,45 @@ class QuantifySuite extends riceFunSuite {
     assert(fpEquals(relativeAbundances("5"), 0.1, 0.05))
   }
 
-  sparkTest("Test of TestingTwoBitFile") {
-    val region1 = ReferenceRegion("region1", 0L, 10L)
-    val tbf = new TestingTwoBitFile(new ByteArrayByteAccess(new Array[Byte](1)))
-    assert(tbf.extract(region1) == "CAATCCTTCG")
+  def buildContigFragments(sequence : String, kmerLength : Int) : RDD[ContigFragment] = {
+    // Create list of Iterator[Char]
+    val its = sequence.sliding(kmerLength).map(k => k.sliding(1))
+
+    // Create list of Intmers
+    val imers = its.map(i => Intmer.constructKmer(i))
+
+    // Create list of Kmers
+    val kmers = imers.map(i => Kmer(Backing(1), true, i._1, i._2))
+
+    // Create list of Canonical Kmers:
+    val ckmers = kmers.map(k => CanonicalKmer.apply(k)).toArray
+
+    // Create 2 contig fragments:
+    val contig1 = ContigFragment("1", ckmers.slice(0, ckmers.length / 2), false, 1)
+    val contig2 = ContigFragment("2", ckmers.slice(ckmers.length / 2, ckmers.length), ckmers.length / 2)
+
+    sc.parallelize( Array(contig1, contig2) )
   }
 
   sparkTest("Test of Index") {
-    // Takes a set of transcripts and a twobitfile and a kmer length, then returns a tuple: (kmers -> eq classes, eq class -> iterable of member kmers)
+    // Takes a set of contigFragments and returns a ColoredDebruijnGraph
 
-    val region1 = ReferenceRegion("region1", 0L, 10L)
-    val exon1 = Exon("exon1", "transcript1", true, region1)
-    val transcript1 = Transcript("transcript1", Seq("transcript1"), "gene1", true, Iterable(exon1), Iterable(), Iterable())
+    val sequence = "TGACTG"
+    val contigs = buildContigFragments(sequence, 3)
 
-    val region2 = ReferenceRegion("region2", 11L, 20L)
-    val exon2 = Exon("exon2", "transcript2", true, region2)
-    val transcript2 = Transcript("transcript2", Seq("transcript2"), "gene1", true, Iterable(exon2), Iterable(), Iterable())
+    // Use contig fragments to build graph:
+    val g = Index.apply(contigs)
 
-    val transcripts = sc.parallelize(Seq(transcript1, transcript2))
+    // Assert that all kmers are the same
+    val vertices = g.vertices.collect().map(v => (v(0), v.(1).kmer.toOriginalString())) // Array of (vertexID, kmerString)
+    assert( vertices.forall(v => sequence contains v.(1)) )
+    assert(klist.length == sequence.length + 1 - 3)
 
-    val tbfile = new TestingTwoBitFile(new ByteArrayByteAccess(new Array[Byte](1)))
+    // Assert that all edges are appropriate 
+    val edges = g.edges.collect().map(e => (e.srcId, dstId)) // Array of (srcId, dstId)
+    val vmap = vertices.toMap
+    assert( edges.forall(e => vmap(e(0)).slice(1, kmerLength) == vmap(e.(1)).slice(0, kmerLength-1)) )
 
-    // List of ( ... (kmer, class id) ... ) AND (... (id, list of kmers) ...) 
-    var (kmersToEq, eqToKmers) = Index.apply(tbfile, transcripts, 5)
-
-    val kToEq = kmersToEq.collect()
-    val eqToK = eqToKmers.collect()
-
-    // Tracking 3 particular kmers: "CAATC", "GTGCA", "CTTCG"
-    // Should be at least 2 eq classes, such that one contains both "CAATC" and "CTTCG", while the ther contains "GTGCA"
-    val CAATCtoClassArray = kToEq.filter(_._1 == "CAATC")
-    assert(CAATCtoClassArray.length == 1) // There should only be one instance of each kmer
-    val CAATCtoClass = CAATCtoClassArray(0)
-
-    val GTGCAtoClassArray = kToEq.filter(_._1 == "GTGCA")
-    assert(GTGCAtoClassArray.length == 1)
-    val GTGCAtoClass = GTGCAtoClassArray(0)
-
-    val CTTCGtoClassArray = kToEq.filter(_._1 == "CTTCG")
-    assert(CTTCGtoClassArray.length == 1)
-    val CTTCGtoClass = CTTCGtoClassArray(0)
-
-    var class1 = CAATCtoClass._2
-    var class2 = GTGCAtoClass._2
-    var class3 = CTTCGtoClass._2
-    assert(class1 != class2)
-    assert(class1 == class3)
-
-    var class1Kmers = eqToK.filter(_._1 == class1)(0)
-    assert(class1Kmers._2.toList.contains("CAATC"))
-    assert(class1Kmers._2.toList.contains("CTTCG"))
-    assert(!class1Kmers._2.toList.contains("GTGCA"))
-
-    var class2Kmers = eqToK.filter(_._1 == class2)(0)
-    assert(class2Kmers._2.toList.contains("GTGCA"))
-    assert(!class2Kmers._2.toList.contains("CAATC"))
-    assert(!class2Kmers._2.toList.contains("CTTCG"))
   }
 
   sparkTest("quantify a small set of more realistic but unbiased transcripts") {
