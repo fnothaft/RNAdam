@@ -445,7 +445,8 @@ class QuantifySuite extends riceFunSuite {
     // Takes a set of contigFragments and returns a ColoredDebruijnGraph
 
     val sequence = "GACAGCTTATACGGGGCTT"
-    val contigs = buildContigFragments(sequence, 16)
+    val kmerLength = 16
+    val contigs = buildContigFragments(sequence, kmerLength)
 
     // Use contig fragments to build graph:
     val g = Index.apply(contigs)
@@ -453,7 +454,7 @@ class QuantifySuite extends riceFunSuite {
     // Assert that all kmers are the same
     val vertices = g.vertices.collect().map(v => (v._1, v._2.kmer.toOriginalString)) // Array of (vertexID, kmerString)
     assert( vertices.forall(v => sequence contains v._2) )
-    assert(vertices.length == sequence.length + 1 - 16)
+    assert(vertices.length == sequence.length + 1 - kmerLength)
 
     // Assert that all edges are appropriate 
     val edges = g.edges.collect().map(e => (e.srcId, e.dstId)) // Array of (srcId, dstId)
