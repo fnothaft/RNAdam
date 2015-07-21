@@ -417,11 +417,11 @@ class QuantifySuite extends riceFunSuite {
   }
 
   def buildContigFragments(sequence : String, kmerLength : Int) : RDD[ContigFragment] = {
-    // Create list of Iterator[Char]
-    val its = sequence.sliding(kmerLength).map(k => k.sliding(1).toArray)
+    // Create list of Strings
+    val its = sequence.sliding(kmerLength)
 
     // Create list of Intmers
-    val imers = its.map(i => IntMer.constructKmer(i))
+    val imers = its.map(i => IntMer.apply(i))
 
     // Create list of Kmers
     val kmers = imers.map(i => { Kmer.newBuilder()
@@ -444,8 +444,8 @@ class QuantifySuite extends riceFunSuite {
   sparkTest("Test of Index") {
     // Takes a set of contigFragments and returns a ColoredDebruijnGraph
 
-    val sequence = "TGACTG"
-    val contigs = buildContigFragments(sequence, 3)
+    val sequence = "GACAGCTTATACGGGGCTT"
+    val contigs = buildContigFragments(sequence, 16)
 
     // Use contig fragments to build graph:
     val g = Index.apply(contigs)
@@ -453,7 +453,7 @@ class QuantifySuite extends riceFunSuite {
     // Assert that all kmers are the same
     val vertices = g.vertices.foreach(v => (v(0), v(1).kmer.toOriginalString())).collect() // Array of (vertexID, kmerString)
     assert( vertices.forall(v => sequence contains v(1)) )
-    assert(vertices.length == sequence.length + 1 - 3)
+    assert(vertices.length == sequence.length + 1 - 16)
 
     // Assert that all edges are appropriate 
     val edges = g.edges.collect().map(e => (e.srcId, e.dstId)) // Array of (srcId, dstId)
