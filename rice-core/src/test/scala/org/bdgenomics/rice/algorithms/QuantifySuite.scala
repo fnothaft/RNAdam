@@ -26,7 +26,7 @@ import scala.collection.immutable.HashMap
 import scala.math.abs
 import org.bdgenomics.utils.io.{ ByteAccess, ByteArrayByteAccess }
 import net.fnothaft.ananas.models.{CanonicalKmer, IntMer, ContigFragment}
-import net.fnothaft.ananas.avro.Kmer
+import net.fnothaft.ananas.avro.{Kmer, Backing}
 import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
 
 class QuantifySuite extends riceFunSuite {
@@ -436,7 +436,7 @@ class QuantifySuite extends riceFunSuite {
 
     // Create 2 contig fragments:
     val contig1 = ContigFragment("1", ckmers.slice(0, ckmers.length / 2), false, 1)
-    val contig2 = ContigFragment("2", ckmers.slice(ckmers.length / 2, ckmers.length), ckmers.length / 2)
+    val contig2 = ContigFragment("2", ckmers.slice(ckmers.length / 2, ckmers.length), true, ckmers.length / 2)
 
     sc.parallelize( Array(contig1, contig2) )
   }
@@ -451,7 +451,7 @@ class QuantifySuite extends riceFunSuite {
     val g = Index.apply(contigs)
 
     // Assert that all kmers are the same
-    val vertices = g.vertices.collect().map(v => (v(0), v(1).kmer.toOriginalString())) // Array of (vertexID, kmerString)
+    val vertices = g.vertices.foreach(v => (v(0), v(1).kmer.toOriginalString())).collect() // Array of (vertexID, kmerString)
     assert( vertices.forall(v => sequence contains v(1)) )
     assert(vertices.length == sequence.length + 1 - 3)
 
