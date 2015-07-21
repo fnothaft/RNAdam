@@ -61,28 +61,15 @@ class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] wi
       ContigFragment.loadFromFile(sc, args.genes)
     }
 
-    // run indexing
+  // run indexing
     val coloredDeBruijnGraph = Indexing.time {
       Indexer(contigFragments)
     }
 
-    // map to avro classes and save indices
-    SavingKmers.time {
-      kmerMap.map(kv => {
-        KmerToClass.newBuilder()
-          .setKmer(kv._1)
-          .setEquivalenceClass(kv._2)
-          .build()
-      }).adamParquetSave(args.output + "_kmers")
+    // save index
+    SavingGraph.time {
+      ColoredDeBruijnGraph.saveToFile(args.output + "_graph", coloredDeBruijnGraph)
     }
-
-    SavingClasses.time {
-      classMap.map(kv => {
-        ClassContents.newBuilder()
-          .setEquivalenceClass(kv._1)
-          .setKmers(kv._2.toList)
-          .build()
-      }).adamParquetSave(args.output + "_classes")
-    }
+    
   }
 }

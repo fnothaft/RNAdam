@@ -37,7 +37,9 @@ object Index extends Serializable with Logging {
    */
   def apply(contigFragments: RDD[ContigFragment]): Graph[ColoredKmerVertex, Unit] = {
 
-    ColoredDeBruijnGraph.buildFromFragments(contigFragments)
+    ContigsToGraph.time {
+      ColoredDeBruijnGraph.buildFromFragments(contigFragments)
+    }
 
   }
 
