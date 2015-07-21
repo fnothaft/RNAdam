@@ -21,13 +21,13 @@ import java.io.File
 import org.apache.spark.{ Logging, SparkContext }
 import org.apache.spark.rdd.MetricsContext._
 import org.bdgenomics.adam.rdd.ADAMContext._
-import org.bdgenomics.adam.util.{ TwoBitFile, ReferenceFile }
 import org.bdgenomics.rice.Timers._
 import org.bdgenomics.rice.algorithms.{ Index => Indexer }
 import org.bdgenomics.rice.avro._
 import org.bdgenomics.utils.cli._
 import org.bdgenomics.utils.io.{ LocalFileByteAccess }
 import org.kohsuke.args4j.{ Argument, Option => Args4jOption }
+import net.fnothaft.ananas.models.ContigFragment
 
 object Index extends BDGCommandCompanion {
   val commandName = "index"
@@ -56,19 +56,14 @@ class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] wi
   val companion = Index
 
   def run(sc: SparkContext) {
-    // load genome
-    val genome = LoadingTwoBit.time {
-      new TwoBitFile(new LocalFileByteAccess(new File(args.genome)))
-    }
-
     // load gene annotations and transform to contig fragments
     val contigFragments = LoadingGenes.time {
       ContigFragment.loadFromFile(sc, args.genes)
     }
 
     // run indexing
-    val (kmerMap, classMap) = Indexing.time {
-      Indexer(genome, contigFragments, args.kmerLength)
+    val coloredDeBruijnGraph = Indexing.time {
+      Indexer(contigFragments)
     }
 
     // map to avro classes and save indices
