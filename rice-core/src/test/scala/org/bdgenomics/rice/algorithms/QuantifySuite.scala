@@ -458,7 +458,7 @@ class QuantifySuite extends riceFunSuite {
     // Assert that all edges are appropriate 
     val edges = g.edges.collect().map(e => (e.srcId, e.dstId)) // Array of (srcId, dstId)
     val vmap = vertices.toMap
-    assert( edges.forall(e => vmap(e._1.slice(1, kmerLength)) == vmap(e._2.slice(0, kmerLength-1))) ) 
+    assert( edges.forall(e => vmap(e._1).slice(1, kmerLength) == vmap(e._2).slice(0, kmerLength-1)) ) 
 
   }
 
