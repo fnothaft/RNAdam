@@ -451,14 +451,14 @@ class QuantifySuite extends riceFunSuite {
     val g = Index.apply(contigs)
 
     // Assert that all kmers are the same
-    val vertices = g.vertices.collect().map(v => (v._1, v._2.kmer.toOriginalString)) // Array of (vertexID, kmerString)
-    assert( vertices.forall(v => sequence contains v(1)) )
+    val vertices = g.vertices.collect() // Array of (vertexID, kmerString)
+    assert( vertices.forall(v => sequence contains v._2 )
     assert(vertices.length == sequence.length + 1 - 16)
 
     // Assert that all edges are appropriate 
     val edges = g.edges.collect().map(e => (e.srcId, e.dstId)) // Array of (srcId, dstId)
     val vmap = vertices.toMap
-    assert( edges.forall(e => vmap(e(0)).slice(1, kmerLength) == vmap(e(1)).slice(0, kmerLength-1)) )
+    assert( edges.forall(e => vmap(e._1.slice(1, kmerLength) == vmap(e._2.slice(0, kmerLength-1)) )
 
   }
 
