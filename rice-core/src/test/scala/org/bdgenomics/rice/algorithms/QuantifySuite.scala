@@ -425,7 +425,7 @@ class QuantifySuite extends riceFunSuite {
 
     // Create list of Kmers
     val kmers = imers.map(i => { Kmer.newBuilder()
-                                .setFormat(Backing(1))
+                                .setFormat( Backing.newBuilder().setINT(1)  )
                                 .setIsOriginal(true)
                                 .setIntKmer(i(0))
                                 .setIntMask(i(1))
