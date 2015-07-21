@@ -454,6 +454,7 @@ class QuantifySuite extends riceFunSuite {
     // Assert that all kmers are the same
     val vertices = g.vertices.collect().map(v => (v._1, v._2.kmer.toOriginalString)) // Array of (vertexID, kmerString)
     assert( vertices.forall(v => sequence contains v._2) )
+    println("           // TEST //            ")
     assert(vertices.length == sequence.length + 1 - kmerLength)
 
     // Assert that all edges are appropriate 
