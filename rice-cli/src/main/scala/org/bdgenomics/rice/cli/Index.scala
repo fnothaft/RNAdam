@@ -28,6 +28,7 @@ import org.bdgenomics.utils.cli._
 import org.bdgenomics.utils.io.{ LocalFileByteAccess }
 import org.kohsuke.args4j.{ Argument, Option => Args4jOption }
 import net.fnothaft.ananas.models.ContigFragment
+import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
 
 object Index extends BDGCommandCompanion {
   val commandName = "index"
@@ -70,6 +71,6 @@ class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] wi
     SavingGraph.time {
       ColoredDeBruijnGraph.saveToFile(args.output + "_graph", coloredDeBruijnGraph)
     }
-    
+
   }
 }
