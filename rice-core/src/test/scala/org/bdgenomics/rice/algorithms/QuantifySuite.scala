@@ -416,27 +416,14 @@ class QuantifySuite extends riceFunSuite {
     assert(fpEquals(relativeAbundances("5"), 0.1, 0.05))
   }
 
-  def buildContigFragments(sequence : String, kmerLength : Int) : RDD[ContigFragment] = {
-    // Create list of Strings
-    val its = sequence.sliding(kmerLength)
+  def buildContigFragments(sequence : String) : RDD[ContigFragment] = {
 
     // Create list of Intmers
-    val imers = its.map(i => IntMer.apply(i))
-
-    // Create list of Kmers
-    val kmers = imers.map(i => { Kmer.newBuilder()
-                                .setFormat( Backing.INT )
-                                .setIsOriginal(true)
-                                .setIntKmer(i.kmer)
-                                .setIntMask(i.mask)
-                                .build() } )
-
-    // Create list of Canonical Kmers:
-    val ckmers = kmers.map(k => CanonicalKmer.apply(k)).toArray
+    val imers = IntMer.fromSequence(sequence)
 
     // Create 2 contig fragments:
-    val contig1 = ContigFragment("1", ckmers.slice(0, ckmers.length / 2), false, 1)
-    val contig2 = ContigFragment("2", ckmers.slice(ckmers.length / 2, ckmers.length), true, ckmers.length / 2)
+    val contig1 = ContigFragment("1", imers.slice(0, imers.length / 2), false, 1)
+    val contig2 = ContigFragment("2", imers.slice(imers.length / 2, imers.length), true, imers.length / 2)
 
     sc.parallelize( Array(contig1, contig2) )
   }
@@ -446,7 +433,7 @@ class QuantifySuite extends riceFunSuite {
 
     val sequence = "GACAGCTTATACGGGGCTT"
     val kmerLength = 16
-    val contigs = buildContigFragments(sequence, kmerLength)
+    val contigs = buildContigFragments(sequence)
 
     // Use contig fragments to build graph:
     val g = Index.apply(contigs)
@@ -454,7 +441,6 @@ class QuantifySuite extends riceFunSuite {
     // Assert that all kmers are the same
     val vertices = g.vertices.collect().map(v => (v._1, v._2.kmer.toOriginalString)) // Array of (vertexID, kmerString)
     assert( vertices.forall(v => sequence contains v._2) )
-    println("           // TEST //            ")
     assert(vertices.length == sequence.length + 1 - kmerLength)
 
     // Assert that all edges are appropriate 
