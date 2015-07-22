@@ -421,9 +421,12 @@ class QuantifySuite extends riceFunSuite {
     // Create list of Intmers
     val imers = IntMer.fromSequence(sequence)
 
+    // Cast them to Canonical Kmer
+    val ckmers = imers.map(_.asInstanceOf(CanonicalKmer))
+
     // Create 2 contig fragments:
-    val contig1 = ContigFragment("1", imers.slice(0, imers.length / 2), false, 1)
-    val contig2 = ContigFragment("2", imers.slice(imers.length / 2, imers.length), true, imers.length / 2)
+    val contig1 = ContigFragment("1", ckmers.slice(0, ckmers.length / 2), false, 1)
+    val contig2 = ContigFragment("2", ckmers.slice(ckmers.length / 2, ckmers.length), true, ckmers.length / 2)
 
     sc.parallelize( Array(contig1, contig2) )
   }
