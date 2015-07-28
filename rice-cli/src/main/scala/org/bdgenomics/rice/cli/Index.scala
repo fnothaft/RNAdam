@@ -26,7 +26,7 @@ import org.bdgenomics.rice.Timers._
 import org.bdgenomics.rice.algorithms.{ Index => Indexer }
 import org.bdgenomics.rice.avro._
 import org.bdgenomics.utils.cli._
-import org.bdgenomics.utils.io.{ LocalFileByteAccess }
+import org.bdgenomics.utils.io.LocalFileByteAccess
 import org.kohsuke.args4j.{ Argument, Option => Args4jOption }
 
 object Index extends BDGCommandCompanion {
