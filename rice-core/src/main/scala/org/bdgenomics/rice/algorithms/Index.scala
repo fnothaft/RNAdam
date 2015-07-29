@@ -37,10 +37,39 @@ object Index extends Serializable with Logging {
    */
   def apply(contigFragments: RDD[ContigFragment]): Graph[ColoredKmerVertex, Unit] = {
 
+    val graph = createGraph(contigFragments)
+    val mapping = computeVertexMapping(graph)
+    mapping
+  }
+
+  /**
+   * Creates a colored de bruijn graph, given a set of Nucleotide Contig Fragments.
+   *
+   * @param contigFragments An RDD containing contigFragments.
+   * @return Returns a Graph representing a colored De Bruijn graph of kmers
+   */
+  def createGraph(contigFragments: RDD[ContigFragment]): Graph[ColoredKmerVertex, Unit] = {
+
     ContigsToGraph.time {
       ColoredDeBruijnGraph.buildFromFragments(contigFragments)
     }
+  }
 
+  /**
+   * Creates a mapping between kmers and the set of transcripts they appear in. 
+   * 
+   * @param graph A colored de bruijn graph representing kmers read from transcripts
+   * @return Returns a Mapping from kmers to transcripts and the abundance of kmers in the transcripts
+   */
+  def computeVertexMapping(graph: Graph[ColoredKmerVertex, Unit]): Map[Long, Map[String, Long]] = {
+
+    VertexMapping.time { 
+      vertices = graph.vertices                                           // RDD[ kmerHash, ColoredKmerVertex ]
+            .flatmap(v => [ (v._1, (t._1, 1L)) for t in v._2.terminals ]) // RDD[ kmerHash, (color, 1) ]
+            .reduceByKey( (c1, c2) => (c1._1, c1._2 + c2._2) )            // RDD[ kmerHash, (color, num occurrences) ]   ** REPLACE WITH SINGLE MAP
+            .groupByKey()                                                 // RDD[ kmerHash, Iterable[(color, num occurrences)] ]
+            .map(m => (m._1, m._2.toMap))                                 // RDD[ kmerHash, Map[color, num occurrences] ]
+    }
   }
 
 }
