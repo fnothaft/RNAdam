@@ -416,43 +416,6 @@ class QuantifySuite extends riceFunSuite {
     assert(fpEquals(relativeAbundances("5"), 0.1, 0.05))
   }
 
-  def buildContigFragments(sequence : String) : RDD[ContigFragment] = {
-
-    // Create list of Intmers
-    val imers = IntMer.fromSequence(sequence)
-
-    // Cast them to Canonical Kmer
-    val ckmers = imers.map(_.asInstanceOf[CanonicalKmer])
-
-    // Create 2 contig fragments:
-    val contig1 = ContigFragment("1", ckmers.slice(0, ckmers.length / 2), false, 1)
-    val contig2 = ContigFragment("2", ckmers.slice(ckmers.length / 2, ckmers.length), true, ckmers.length / 2)
-
-    sc.parallelize( Array(contig1, contig2) )
-  }
-
-  sparkTest("Test of Index") {
-    // Takes a set of contigFragments and returns a ColoredDebruijnGraph
-
-    val sequence = "GACAGCTTATACGGGGCTT"
-    val kmerLength = 16
-    val contigs = buildContigFragments(sequence)
-
-    // Use contig fragments to build graph:
-    val g = Index.apply(contigs)
-
-    // Assert that all kmers are the same
-    val vertices = g.vertices.collect().map(v => (v._1, v._2.kmer.toOriginalString)) // Array of (vertexID, kmerString)
-    assert( vertices.forall(v => sequence contains v._2) )
-    assert(vertices.length == sequence.length + 1 - kmerLength)
-
-    // Assert that all edges are appropriate 
-    val edges = g.edges.collect().map(e => (e.srcId, e.dstId)) // Array of (srcId, dstId)
-    val vmap = vertices.toMap
-    assert( edges.forall(e => vmap(e._1).slice(1, kmerLength) == vmap(e._2).slice(0, kmerLength-1)) ) 
-
-  }
-
   sparkTest("quantify a small set of more realistic but unbiased transcripts") {
     // generate transcripts
     val classSize = Seq(1000, 500, 700, 400, 400, 200, 100)
