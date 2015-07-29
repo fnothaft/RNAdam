@@ -17,7 +17,7 @@
   <name>rice: an ADAM-based RNA-seq quantification pipeline</name>
 
   <properties>
-    <adam.version>0.17.0</adam.version>
+    <adam.version>0.17.1-SNAPSHOT</adam.version>
     <avro.version>1.7.6</avro.version>
     <hadoop.version>2.2.0</hadoop.version>
     <java.version>1.7</java.version>
@@ -228,6 +228,21 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>net.fnothaft</groupId>
+        <artifactId>ananas</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.bdgenomics.adam</groupId>
+            <artifactId>*</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.bdgenomics.utils</groupId>
+            <artifactId>*</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
       <dependency>
         <groupId>org.apache.parquet</groupId>
         <artifactId>parquet-avro</artifactId>
