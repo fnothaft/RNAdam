@@ -24,7 +24,7 @@ object TranscriptMap {
   /**
    * Loads a map of transcripts from disk.
    */
-  def apply(filepath: String): Map[Long, Transcript] = {
+  def apply(filepath: String): Map[String, Transcript] = {
     ???
   }
 }

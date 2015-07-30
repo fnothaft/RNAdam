@@ -29,6 +29,7 @@ import org.bdgenomics.utils.io.LocalFileByteAccess
 import org.kohsuke.args4j.{ Argument, Option => Args4jOption }
 import net.fnothaft.ananas.models.ContigFragment
 import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
+import org.mapdb.*
 
 object Index extends BDGCommandCompanion {
   val commandName = "index"
@@ -63,15 +64,28 @@ class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] wi
     }
 
     // run indexing
-    val kmerMapping = Indexing.time {
+    val mappings = Indexing.time {
       Indexer(contigFragments)
     }
 
     // save index
     Saving.time {
-      xxx.saveToFile(args.output + "_index", kmerMapping)
-      xxx.saveToFile(args.output + "_tmap", yyy)
+      naiveSaveToFile(args.output + "_kmap", mappings._1)
+      naiveSaveToFile(args.output + "_tmap", mappings._2)
     }
 
   }
+
+  /**
+   * Save a map to disk using built in Java Serialization
+   *
+   * @param filename The name of the file to write to
+   * @param item The Map to serialize
+   */
+  private def naiveSaveToFile(filename: String, item: Map[Long, Map[String, Long]]) {
+    val out = ObjectOutputStream(FileOutputStream(filename))
+    out.writeObject(item)
+    out.close()
+  }
+
 }
