@@ -62,14 +62,15 @@ class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] wi
       ContigFragment.loadFromFile(sc, args.genes)
     }
 
-  // run indexing
-    val coloredDeBruijnGraph = Indexing.time {
+    // run indexing
+    val kmerMapping = Indexing.time {
       Indexer(contigFragments)
     }
 
     // save index
-    SavingGraph.time {
-      ColoredDeBruijnGraph.saveToFile(args.output + "_graph", coloredDeBruijnGraph)
+    Saving.time {
+      xxx.saveToFile(args.output + "_index", kmerMapping)
+      xxx.saveToFile(args.output + "_tmap", yyy)
     }
 
   }

@@ -35,7 +35,7 @@ object Index extends Serializable with Logging {
    * @param contigFragments An RDD containing contigFragments.
    * @return Returns a Graph representing a colored De Bruijn graph of kmers
    */
-  def apply(contigFragments: RDD[ContigFragment]): Graph[ColoredKmerVertex, Unit] = {
+  def apply(contigFragments: RDD[ContigFragment]): Map[Long, Map[String, Long]] = {
 
     val graph = createGraph(contigFragments)
     val mapping = computeVertexMapping(graph)

@@ -29,5 +29,9 @@ object Mapper extends Serializable with Logging {
             kmerIndex: KmerIndex,
             likelihoodModel: AlignmentModel): RDD[(Long, Map[Long, Double])] = {
     ???
+    for each read in reads:
+    	val r = IntMer.fromSequence(read.sequence)
+    	val mapping = likelihoodModel.processRead(r, kmerIndex)
+    
   }
 }

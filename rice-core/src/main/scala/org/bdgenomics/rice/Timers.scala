@@ -27,10 +27,11 @@ private[rice] object Timers extends Metrics {
   // CLI
   val LoadingGenes = timer("Loading gene descriptions")
   val Indexing = timer("Indexing k-mers")
-  val SavingGraph = timer("Saving DeBruijnGraph of kmers")
+  val SavingIndex = timer("Saving DeBruijnGraph of kmers")
 
   // Indexing
   val ContigsToGraph = timer("Converting to DeBruijnGraph")
+  val VertexMapping = timer("Creating a map of kmers to counts")
 
   // Quantification
   val ExtractTranscriptLengths = timer("Extraction Transcript Lengths")
