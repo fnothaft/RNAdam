@@ -23,7 +23,7 @@ import java.io.{ObjectInputStream, FileInputStream}
 object KmerIndex extends Serializable {
 
   def apply(filename: String): KmerIndex = {
-    val in = new ObjectInputStream( FileInputStream(filename) )
+    val in = new ObjectInputStream( new FileInputStream(filename) )
     val mapping = in.readObject().asInstanceOf[Map[Long, Map[String, Long]]]
     in.close()
     IndexMap(16, mapping)
