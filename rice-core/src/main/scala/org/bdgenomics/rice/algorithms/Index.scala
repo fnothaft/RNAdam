@@ -35,7 +35,7 @@ object Index extends Serializable with Logging {
    * @param contigFragments An RDD containing contigFragments.
    * @return Returns a Graph representing a colored De Bruijn graph of kmers
    */
-  def apply(contigFragments: RDD[ContigFragment], transcripts: RDD[Transcript]): (Map[Long, Map[String, Long]], Map[Long, Transcript]) = {
+  def apply(contigFragments: RDD[ContigFragment], transcripts: RDD[Transcript]): (Map[Long, Map[String, Long]], Map[String, Transcript]) = {
 
     val graph = createGraph(contigFragments)
     val vertexMapping = computeVertexMapping(graph)
@@ -80,7 +80,7 @@ object Index extends Serializable with Logging {
    * @param transcripts RDD of Transcripts
    * @return Returns a mapping between transcript IDs and transcript objects
    */
-  def computeTranscriptMapping(transcripts: RDD[Transcript]): Map[Long, Transcript] = {
+  def computeTranscriptMapping(transcripts: RDD[Transcript]): Map[String, Transcript] = {
     transcripts.map(t => (t.id, t)).collect().toMap
   }
 

@@ -25,7 +25,8 @@ import org.bdgenomics.utils.instrumentation.Metrics
 private[rice] object Timers extends Metrics {
 
   // CLI
-  val LoadingGenes = timer("Loading gene descriptions")
+  val LoadingContigs = timer("Loading Contig Fragments")
+  val LoadingTranscripts = timer("Loading Transcripts")
   val Indexing = timer("Indexing k-mers")
   val SavingIndex = timer("Saving DeBruijnGraph of kmers")
 

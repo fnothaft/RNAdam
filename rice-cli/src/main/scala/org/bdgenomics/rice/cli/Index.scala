@@ -17,7 +17,7 @@
  */
 package org.bdgenomics.rice.cli
 
-import java.io.File
+import java.io.{File, ObjectOutputStream, FileOutputStream}
 import org.apache.spark.{ Logging, SparkContext }
 import org.apache.spark.rdd.MetricsContext._
 import org.bdgenomics.adam.rdd.ADAMContext._
@@ -59,13 +59,20 @@ class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] wi
 
   def run(sc: SparkContext) {
     // load gene annotations and transform to contig fragments
-    val contigFragments = LoadingGenes.time {
+    val contigFragments = LoadingContigs.time {
       ContigFragment.loadFromFile(sc, args.genes)
+    }
+
+    // load gene annotations and transform to transcripts
+    val transcripts = LoadingTranscripts.time {
+      sc.loadGenes(args.genes)
+        .flatMap(_.transcripts)
+        .instrument()
     }
 
     // run indexing
     val mappings = Indexing.time {
-      Indexer(contigFragments)
+      Indexer(contigFragments, transcripts)
     }
 
     // save index
@@ -82,7 +89,7 @@ class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] wi
    * @param filename The name of the file to write to
    * @param item The Map to serialize
    */
-  private def naiveSaveToFile(filename: String, item: Map[Long, Map[String, Long]]) {
+  private def naiveSaveToFile(filename: String, item: Map) {
     val out = ObjectOutputStream(FileOutputStream(filename))
     out.writeObject(item)
     out.close()
