@@ -26,5 +26,5 @@ trait AlignmentModel {
    * Given a read, returns (transcript, likelihood) pairs.
    */
   def processRead(iter: Iterator[CanonicalKmer],
-                  kmerIndex: KmerIndex): Map[Long, Double]
+                  kmerIndex: KmerIndex): Map[String, Double]
 }

@@ -27,11 +27,9 @@ object Mapper extends Serializable with Logging {
 
   def apply(reads: RDD[AlignmentRecord],
             kmerIndex: KmerIndex,
-            likelihoodModel: AlignmentModel): RDD[(Long, Map[Long, Double])] = {
-    ???
-    /*for each read in reads:
-    	val r = IntMer.fromSequence(read.sequence)
-    	val mapping = likelihoodModel.processRead(r, kmerIndex)*/
-    
+            likelihoodModel: AlignmentModel): RDD[(Long, Map[String, Double])] = {
+
+    reads.zipWithUniqueId()																				  // RDD[ read, readID ]
+    	 .map( r => (r._2, likelihoodModel.processRead(IntMer.fromSequence(r._1.sequence), kmerIndex) ) ) // RDD[ readID, Map[color -> likelihood] ] 
   }
 }
