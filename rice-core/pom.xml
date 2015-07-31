@@ -153,10 +153,5 @@
       <groupId>org.jblas</groupId>
       <artifactId>jblas</artifactId>
     </dependency>
-    <dependency>
-      <groupId>net.fnothaft</groupId>
-      <artifactId>ananas</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
   </dependencies>
 </project>
