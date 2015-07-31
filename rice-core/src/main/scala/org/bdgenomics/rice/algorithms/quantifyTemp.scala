@@ -1,4 +1,4 @@
-// TEMP QUANTIFY:
+/*// TEMP QUANTIFY:
 
 // SHOULDNT LIKELIHOOD BE A FLOAT ?
 def likelihoodEstimator(vals: Iterable[String, Long]): Map[String, Double] = {
@@ -31,4 +31,4 @@ def prep(reads: RDD[AlignmentRecord],
 }
 
 
-  
+  */
