@@ -22,6 +22,7 @@ import org.apache.spark.rdd.RDD
 import org.bdgenomics.formats.avro.AlignmentRecord
 import org.bdgenomics.rice.algorithms.alignment.AlignmentModel
 import org.bdgenomics.rice.models.KmerIndex
+import net.fnothaft.ananas.models.IntMer
 
 object Mapper extends Serializable with Logging {
 
