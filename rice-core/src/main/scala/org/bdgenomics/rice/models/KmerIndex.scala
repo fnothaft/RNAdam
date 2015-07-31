@@ -23,8 +23,8 @@ import java.io.{ObjectInputStream, FileInputStream}
 object KmerIndex extends Serializable {
 
   def apply(filename: String): KmerIndex = {
-    in = ObjectInputStream( FileInputStream(filename) )
-    mapping = in.readObject().asInstanceOf[Map[Long, Map[String, Long]]]
+    val in = ObjectInputStream( FileInputStream(filename) )
+    val mapping = in.readObject().asInstanceOf[Map[Long, Map[String, Long]]]
     in.close()
     IndexMap(16, mapping)
   }
@@ -34,7 +34,7 @@ trait KmerIndex extends Serializable {
 
   def getKmerLength: Int
 
-  def getTranscripts(kmer: CanonicalKmer): Map[String, Int]
+  def getTranscripts(kmer: CanonicalKmer): Map[String, Long]
 }
 
 case class IndexMap(kmerLength: Int,
@@ -42,6 +42,6 @@ case class IndexMap(kmerLength: Int,
 
 	def getKmerLength : Int = kmerLength
 
-	def getTranscripts(kmer: CanonicalKmer): Map[String, Int] = kmersToCounts(kmer.longHash)
+	def getTranscripts(kmer: CanonicalKmer): Map[String, Long] = kmersToCounts(kmer.longHash)
 
 }

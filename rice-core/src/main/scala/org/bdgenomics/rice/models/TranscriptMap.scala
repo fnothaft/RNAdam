@@ -26,7 +26,7 @@ object TranscriptMap {
    * Loads a map of transcripts from disk.
    */
   def apply(filepath: String): Map[String, Transcript] = {
-    in = ObjectInputStream( FileInputStream(filepath) )
+    val in = ObjectInputStream( FileInputStream(filepath) )
     val mapping = in.readObject().asInstanceOf[Map[String, Transcript]]
     in.close()
     mapping
