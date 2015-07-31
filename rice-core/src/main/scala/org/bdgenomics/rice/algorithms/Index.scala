@@ -71,7 +71,7 @@ object Index extends Serializable with Logging {
            .reduceByKey( (c1, c2) => (c1._1, c1._2 + c2._2) )                   // RDD[ kmerHash, (color, num occurrences) ]   ** REPLACE WITH SINGLE MAP
            .groupByKey()                                                        // RDD[ kmerHash, Iterable[(color, num occurrences)] ]
            .map(m => (m._1, m._2.toMap))                                        // RDD[ kmerHash, Map[color, num occurrences] ]
-           .toMap
+           .collect().toMap
     }
   }
 
