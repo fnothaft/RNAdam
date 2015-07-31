@@ -29,7 +29,6 @@ import org.bdgenomics.utils.io.LocalFileByteAccess
 import org.kohsuke.args4j.{ Argument, Option => Args4jOption }
 import net.fnothaft.ananas.models.ContigFragment
 import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
-import org.mapdb.*
 
 object Index extends BDGCommandCompanion {
   val commandName = "index"
@@ -89,8 +88,8 @@ class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] wi
    * @param filename The name of the file to write to
    * @param item The Map to serialize
    */
-  private def naiveSaveToFile(filename: String, item: Map) {
-    val out = ObjectOutputStream(FileOutputStream(filename))
+  private def naiveSaveToFile(filename: String, item: Any) {
+    val out = new ObjectOutputStream(new FileOutputStream(filename))
     out.writeObject(item)
     out.close()
   }

@@ -28,7 +28,7 @@ private[rice] object Timers extends Metrics {
   val LoadingContigs = timer("Loading Contig Fragments")
   val LoadingTranscripts = timer("Loading Transcripts")
   val Indexing = timer("Indexing k-mers")
-  val SavingIndex = timer("Saving DeBruijnGraph of kmers")
+  val Saving = timer("Saving Index to disk")
 
   // Indexing
   val ContigsToGraph = timer("Converting to DeBruijnGraph")

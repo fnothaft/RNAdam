@@ -30,7 +30,7 @@ object Quantify extends Serializable with Logging {
 
   def apply(reads: RDD[AlignmentRecord],
             kmerIndex: KmerIndex,
-            transcriptIndex: Map[Long, Transcript],
+            transcriptIndex: Map[String, Transcript],
             maxIterations: Int): RDD[(Transcript, Double)] = {
     ???
   }
