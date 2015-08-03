@@ -18,8 +18,7 @@
 package org.bdgenomics.rice.algorithms
 
 import org.apache.spark.rdd.RDD
-import org.bdgenomics.adam.models.{ Exon, ReferenceRegion, Transcript }
-import org.bdgenomics.formats.avro.{ Strand, Feature }
+import org.bdgenomics.adam.models.{ Exon, ReferenceRegion, Transcript, CDS }
 import org.bdgenomics.rice.utils.riceFunSuite
 import org.bdgenomics.rice.utils.{ ReadGenerator, TranscriptGenerator }
 import scala.collection.Map
@@ -58,7 +57,7 @@ class QuantifySuite extends riceFunSuite {
     // Test kmer mapping
     val imers = testSeq.sliding(16).map(s => IntMer(s))
     assert( imap.size == 7 ) // 7 kmers of length 16
-    assert( imer.forall(i => imap(i.longHash)("ctg") == 1) )
+    assert( imers.forall(i => imap(i.longHash)("ctg") == 1) )
 
     // Test transcript mapping
     assert( tmap("one").id == "one")
