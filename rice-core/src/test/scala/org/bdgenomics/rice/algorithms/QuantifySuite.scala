@@ -31,6 +31,20 @@ import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
 
 class QuantifySuite extends riceFunSuite {
 
+  // Blatant copy of function from ananas/models/ContigFragment to get around protected status
+  def def buildFromNCF(fragment: NucleotideContigFragment): ContigFragment = {
+    // is this the last fragment in a contig?
+    val isLast = fragment.getFragmentNumber == (fragment.getNumberOfFragmentsInContig - 1)
+
+    val sequence = IntMer.fromSequence(fragment.getFragmentSequence)
+      .map(_.asInstanceOf[CanonicalKmer])
+
+    new ContigFragment(fragment.getContig.getContigName,
+                       sequence,
+                       isLast,
+                       Option(fragment.getFragmentStartPosition).fold(0)(_.toInt))
+  }
+
   def createTestIndex(sequence: String = "ACACTGTGGGTACACTACGAGA") : (Map[Long, Map[String, Long]], Map[String, Transcript]) = {
     val ncf = NucleotideContigFragment.newBuilder()
       .setContig(Contig.newBuilder()
@@ -41,7 +55,7 @@ class QuantifySuite extends riceFunSuite {
       .setFragmentSequence(sequence)
       .build()
 
-    val frag = sc.parallelize( Seq( ContigFragment.buildFromNCF(ncf) ) ) 
+    val frag = sc.parallelize( Seq( buildFromNCF(ncf) ) ) 
 
     val tx = Seq( Transcript("one", Seq("one"), "gene1", true, Iterable[Exon](), Iterable[CDS](), Iterable[UTR]()) ,
                   Transcript("two", Seq("two"), "gene1", true, Iterable[Exon](), Iterable[CDS](), Iterable[UTR]()) )
