@@ -19,6 +19,7 @@ package org.bdgenomics.rice.algorithms
 
 import org.apache.spark.rdd.RDD
 import org.bdgenomics.adam.models.{ Exon, ReferenceRegion, Transcript }
+import org.bdgenomics.formats.avro.{ Strand, Feature }
 import org.bdgenomics.rice.utils.riceFunSuite
 import org.bdgenomics.rice.utils.{ ReadGenerator, TranscriptGenerator }
 import scala.collection.Map
