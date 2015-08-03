@@ -18,9 +18,9 @@
 package org.bdgenomics.rice.algorithms
 
 import org.apache.spark.rdd.RDD
-import org.bdgenomics.adam.models.{ Exon, ReferenceRegion, Transcript, CDS }
+import org.bdgenomics.formats.avro.{ Contig, NucleotideContigFragment }
+import org.bdgenomics.adam.models.{ Exon, ReferenceRegion, Transcript, CDS, UTR }
 import org.bdgenomics.rice.utils.riceFunSuite
-import org.bdgenomics.rice.utils.{ ReadGenerator, TranscriptGenerator }
 import scala.collection.Map
 import scala.collection.immutable.HashMap
 import scala.math.abs
