@@ -34,6 +34,7 @@ object Index extends Serializable with Logging {
    * Computes an index, given a set of Nucleotide Contig Fragments. An index provides a de bruijn graph of kmers
    *
    * @param contigFragments An RDD containing contigFragments.
+   * @param transcripts An RDD containing transcripts
    * @return Returns a Graph representing a colored De Bruijn graph of kmers
    */
   def apply(contigFragments: RDD[ContigFragment], transcripts: RDD[Transcript]): (Map[Long, Map[String, Long]], Map[String, Transcript]) = {
