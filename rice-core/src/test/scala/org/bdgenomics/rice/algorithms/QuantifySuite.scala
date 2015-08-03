@@ -32,7 +32,7 @@ import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
 class QuantifySuite extends riceFunSuite {
 
   // Blatant copy of function from ananas/models/ContigFragment to get around protected status
-  def def buildFromNCF(fragment: NucleotideContigFragment): ContigFragment = {
+  def buildFromNCF(fragment: NucleotideContigFragment): ContigFragment = {
     // is this the last fragment in a contig?
     val isLast = fragment.getFragmentNumber == (fragment.getNumberOfFragmentsInContig - 1)
 
