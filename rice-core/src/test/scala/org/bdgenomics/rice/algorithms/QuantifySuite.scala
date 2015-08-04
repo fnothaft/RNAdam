@@ -18,18 +18,28 @@
 package org.bdgenomics.rice.algorithms
 
 import org.apache.spark.rdd.RDD
-import org.bdgenomics.formats.avro.{ Contig, NucleotideContigFragment }
+import org.bdgenomics.formats.avro.{ Contig, NucleotideContigFragment, AlignmentRecord }
 import org.bdgenomics.adam.models.{ Exon, ReferenceRegion, Transcript, CDS, UTR }
+import org.bdgenomics.rice.models.IndexMap
+import org.bdgenomics.rice.algorithms.alignment.AlignmentModel
 import org.bdgenomics.rice.utils.riceFunSuite
 import scala.collection.Map
 import scala.collection.immutable.HashMap
 import scala.math.abs
 import org.bdgenomics.utils.io.{ ByteAccess, ByteArrayByteAccess }
-import net.fnothaft.ananas.models.{CanonicalKmer, IntMer, ContigFragment}
+import net.fnothaft.ananas.models._
 import net.fnothaft.ananas.avro.{Kmer, Backing}
 import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
 
 class QuantifySuite extends riceFunSuite {
+
+  class TestAlignmentModel() extends AlignmentModel {
+    def processRead(iter: Iterator[CanonicalKmer],
+                  kmerIndex: KmerIndex): Map[String, Double] = {
+      
+      iter.flatMap( c => kmerIndex.getTranscripts(c).toArray ).reduceByKey(_ + _).map(v => (v._1, v._2.toDouble)).toMap
+    }
+  }
 
   // Blatant copy of function from ananas/models/ContigFragment to get around protected status
   def buildFromNCF(fragment: NucleotideContigFragment): ContigFragment = {
@@ -70,11 +80,34 @@ class QuantifySuite extends riceFunSuite {
 
     // Test kmer mapping
     val imers = testSeq.sliding(16).map(s => IntMer(s))
+    println(imap)
     assert( imap.size == 7 ) // 7 kmers of length 16
     assert( imers.forall(i => imap(i.longHash)("ctg") == 1) )
 
     // Test transcript mapping
     assert( tmap("one").id == "one")
     assert( tmap("two").id == "two")
+  }
+
+  sparkTest("Simple Test of Mapper") {
+    val testSeq = "ACACTGTGGGTACACTACGAGA"
+    val ar = Array({AlignmentRecord.newBuilder()
+                            .setSequence(testSeq)
+                            .build()})
+
+    val reads = sc.parallelize(ar)
+
+    val (imap, tmap) = createTestIndex(testSeq)
+
+    val kmerIndex = IndexMap(16, imap)
+
+    val m = Mapper(reads, kmerIndex, TestAlignmentModel)
+
+    // Only one read, so only one item in the map
+    assert( m.size == 1 )
+
+    // The one item should map to ( "ctg" -> number of occurrences of all kmers in contig ctg = 2)
+    assert( m.foreach( v => v._2("ctg") == 2.toDouble ) )
+
   }
 }
