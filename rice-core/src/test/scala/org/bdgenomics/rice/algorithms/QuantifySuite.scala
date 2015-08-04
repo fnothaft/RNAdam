@@ -33,7 +33,7 @@ import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
 
 class QuantifySuite extends riceFunSuite {
 
-  class TestAlignmentModel() extends AlignmentModel {
+  class TestAlignmentModel extends AlignmentModel {
     def processRead(iter: Iterator[CanonicalKmer],
                   kmerIndex: KmerIndex): Map[String, Double] = {
       
