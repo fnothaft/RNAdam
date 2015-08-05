@@ -99,7 +99,7 @@ class QuantifySuite extends riceFunSuite {
 
     val (imap, tmap) = createTestIndex(testSeq)
 
-    val kmerIndex = IndexMap(16, imap)
+    val kmerIndex = IndexMap(16, imap.asInstanceOf[Map[Long, Map[String, Long]]])
 
     val m = Mapper(reads, kmerIndex, TestAlignmentModel).collect()
 
