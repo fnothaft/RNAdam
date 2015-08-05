@@ -20,7 +20,7 @@ package org.bdgenomics.rice.algorithms
 import org.apache.spark.rdd.RDD
 import org.bdgenomics.formats.avro.{ Contig, NucleotideContigFragment, AlignmentRecord }
 import org.bdgenomics.adam.models.{ Exon, ReferenceRegion, Transcript, CDS, UTR }
-import org.bdgenomics.rice.models.IndexMap
+import org.bdgenomics.rice.models.{ KmerIndex, IndexMap }
 import org.bdgenomics.rice.algorithms.alignment.AlignmentModel
 import org.bdgenomics.rice.utils.riceFunSuite
 import scala.collection.Map
@@ -33,7 +33,7 @@ import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
 
 class QuantifySuite extends riceFunSuite {
 
-  class TestAlignmentModel extends AlignmentModel {
+  object TestAlignmentModel extends AlignmentModel {
     def processRead(iter: Iterator[CanonicalKmer],
                   kmerIndex: KmerIndex): Map[String, Double] = {
       
