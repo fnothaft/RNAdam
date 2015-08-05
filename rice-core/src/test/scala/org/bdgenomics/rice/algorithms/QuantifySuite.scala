@@ -23,10 +23,6 @@ import org.bdgenomics.adam.models.{ Exon, ReferenceRegion, Transcript, CDS, UTR 
 import org.bdgenomics.rice.models.{ KmerIndex, IndexMap }
 import org.bdgenomics.rice.algorithms.alignment.AlignmentModel
 import org.bdgenomics.rice.utils.riceFunSuite
-import scala.collection.Map
-import scala.collection.immutable.HashMap
-import scala.math.abs
-import org.bdgenomics.utils.io.{ ByteAccess, ByteArrayByteAccess }
 import net.fnothaft.ananas.models._
 import net.fnothaft.ananas.avro.{Kmer, Backing}
 import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
@@ -99,7 +95,7 @@ class QuantifySuite extends riceFunSuite {
 
     val (imap, tmap) = createTestIndex(testSeq)
 
-    val kmerIndex = IndexMap(16, imap.asInstanceOf[Map[Long, Map[String, Long]]])
+    val kmerIndex = IndexMap(16, imap)
 
     val m = Mapper(reads, kmerIndex, TestAlignmentModel).collect()
 
