@@ -101,10 +101,10 @@ class QuantifySuite extends riceFunSuite {
 
     val kmerIndex = IndexMap(16, imap)
 
-    val m = Mapper(reads, kmerIndex, TestAlignmentModel)
+    val m = Mapper(reads, kmerIndex, TestAlignmentModel).collect()
 
     // Only one read, so only one item in the map
-    assert( m.collect().size == 1 )
+    assert( m.size == 1 )
 
     // The one item should map to ( "ctg" -> number of occurrences of all kmers in contig ctg = 2)
     assert( m.forall( v => v._2("ctg") == 2.toDouble ) )
