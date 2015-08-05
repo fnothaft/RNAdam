@@ -33,7 +33,9 @@ class QuantifySuite extends riceFunSuite {
     def processRead(iter: Iterator[CanonicalKmer],
                   kmerIndex: KmerIndex): Map[String, Double] = {
       
-      iter.flatMap( c => kmerIndex.getTranscripts(c).toArray ).reduceByKey(_ + _).map(v => (v._1, v._2.toDouble)).toMap
+      iter.flatMap( c => kmerIndex.getTranscripts(c) )
+          .groupBy(_._1) // Map[TranscriptID -> List(Occurrences)] 
+          .map( v => (v._1, v._2.reduce(_ + _).toDouble)) 
     }
   }
 
