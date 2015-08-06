@@ -37,7 +37,8 @@ class QuantifySuite extends riceFunSuite {
       iter.toList
           .flatMap( c => kmerIndex.getTranscripts(c) )
           .groupBy(_._1) // Map[ TranscriptID -> List[(TranscriptId, Occurrences)] ] 
-          .map( v => v._2.reduce( (a, b) => (a._1, {a._2 + b._2}.toDouble) ) )
+          .map( v => v._2.reduce( (a, b) => (a._1, a._2 + b._2) ) )
+          .map( v => (v._1, v._2.toDouble) )
     }
   }
 
