@@ -30,12 +30,14 @@ import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
 class QuantifySuite extends riceFunSuite {
 
   object TestAlignmentModel extends AlignmentModel {
+
     def processRead(iter: Iterator[CanonicalKmer],
                   kmerIndex: KmerIndex): Map[String, Double] = {
       
-      iter.flatMap( c => kmerIndex.getTranscripts(c) )
-          .groupBy(_._1) // Map[TranscriptID -> List(Occurrences)] 
-          .map( v => (v._1, v._2.reduce(_ + _).toDouble)) 
+      iter.toList
+          .flatMap( c => kmerIndex.getTranscripts(c) )
+          .groupBy(_._1) // Map[ TranscriptID -> List[(TranscriptId, Occurrences)] ] 
+          .map( v => v._2.reduce( (a, b) => (a._1, {a._2 + b._2}.toDouble) ) )
     }
   }
 
