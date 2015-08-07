@@ -20,7 +20,7 @@ package org.bdgenomics.rice.algorithms.alignment
 import net.fnothaft.ananas.models.CanonicalKmer
 import org.bdgenomics.rice.models.KmerIndex
 
-trait AlignmentModel {
+trait AlignmentModel extends Serializable {
 
   /**
    * Given a read, returns (transcript, likelihood) pairs.
