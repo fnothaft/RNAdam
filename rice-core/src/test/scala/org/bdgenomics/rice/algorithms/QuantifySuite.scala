@@ -27,20 +27,20 @@ import net.fnothaft.ananas.models._
 import net.fnothaft.ananas.avro.{Kmer, Backing}
 import net.fnothaft.ananas.debruijn.ColoredDeBruijnGraph
 
-class QuantifySuite extends riceFunSuite {
+object TestAlignmentModel extends AlignmentModel {
 
-  object TestAlignmentModel extends AlignmentModel {
-
-    def processRead(iter: Iterator[CanonicalKmer],
+  def processRead(iter: Iterator[CanonicalKmer],
                   kmerIndex: KmerIndex): Map[String, Double] = {
       
-      iter.toList
-          .flatMap( c => kmerIndex.getTranscripts(c) )
-          .groupBy(_._1) // Map[ TranscriptID -> List[(TranscriptId, Occurrences)] ] 
-          .map( v => v._2.reduce( (a, b) => (a._1, a._2 + b._2) ) )
-          .map( v => (v._1, v._2.toDouble) )
-    }
-  }
+    iter.toList
+        .flatMap( c => kmerIndex.getTranscripts(c) )
+        .groupBy(_._1) // Map[ TranscriptID -> List[(TranscriptId, Occurrences)] ] 
+        .map( v => v._2.reduce( (a, b) => (a._1, a._2 + b._2) ) )
+        .map( v => (v._1, v._2.toDouble) )
+  }  
+}
+
+class QuantifySuite extends riceFunSuite {
 
   // Blatant copy of function from ananas/models/ContigFragment to get around protected status
   def buildFromNCF(fragment: NucleotideContigFragment): ContigFragment = {
@@ -107,8 +107,40 @@ class QuantifySuite extends riceFunSuite {
     // Only one read, so only one item in the map
     assert( m.size == 1 )
 
-    // The one item should map to ( "ctg" -> number of occurrences of all kmers in contig ctg = 2)
-    assert( m.forall( v => v._2("ctg") == 2.toDouble ) )
+    // The one item should map to ( "ctg" -> number of occurrences of all kmers in contig ctg = 7, as all 7 kmers are from the read)
+    assert( m.forall( v => v._2("ctg") == 7.toDouble ) )
+
+  }
+
+  sparkTest("Less Simple Test of Mapper") {
+    val testSeq1 = "ACACTGTGGGTACACTACGAGA"
+    val testSeq2 = "CCAGTGACTGGAAAAA"
+    val ar = Array({AlignmentRecord.newBuilder()
+                            .setSequence(testSeq1)
+                            .build()},
+                    {AlignmentRecord.newBuilder()
+                            .setSequence(testSeq2)
+                            .build()})
+
+    val reads = sc.parallelize(ar)
+
+    val (imap, tmap) = createTestIndex(testSeq1 + testSeq2)
+
+    val kmerIndex = IndexMap(16, imap)
+
+    val m = Mapper(reads, kmerIndex, TestAlignmentModel).collect()
+
+    // Two reads, so two items in the map
+    assert( m.size == 2 )
+
+    // Assert that readIDs are unique
+    assert( m(0)._1 != m(1)._1 )
+
+    // Should have either 7 or 1 kmers per read (all kmers are from the same transcript "ctg")
+    assert( m.forall( v => {v._2("ctg") == 7.toDouble || v._2("ctg") == 1} ) )
+
+    // Should record 8 kmers in total
+    assert( m(0)._2("ctg") + m(1)._2("ctg") == 8)
 
   }
 }
