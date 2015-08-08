@@ -34,8 +34,8 @@ object SimpleAlignmentModel extends AlignmentModel {
 
   	val ar = iter.toArray // So we can use this more than once
 
-  	val readLength = ar.map( c => c.kmerLength ).reduce(_ + _) // Length of read
   	val kLength = ar(0).kmerLength // kmerLength
+  	val readLength = ar.map( c => 1 ).reduce(_ + _)  + kLength // Length of read
   	
   	ar.flatMap( c => kmerIndex.getTranscripts(c) )  // Iter[ (TranscriptId, Count) ]
   	  .map( c => (c._1, 1L) )						// Iter[ (TranscriptId, 1L)]
