@@ -32,7 +32,7 @@ object SimpleAlignmentModel extends AlignmentModel {
   def processRead(iter: Iterator[CanonicalKmer],
                   kmerIndex: KmerIndex): Map[String, Double] = {
 
-  	val ar = iter.toArray
+  	val ar = iter.toArray // So we can use this more than once
 
   	val readLength = ar.map( c => c.kmerLength ).reduce(_ + _) // Length of read
   	val kLength = ar(0).kmerLength // kmerLength

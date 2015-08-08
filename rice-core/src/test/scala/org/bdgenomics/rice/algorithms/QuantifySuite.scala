@@ -21,7 +21,7 @@ import org.apache.spark.rdd.RDD
 import org.bdgenomics.formats.avro.{ Contig, NucleotideContigFragment, AlignmentRecord }
 import org.bdgenomics.adam.models.{ Exon, ReferenceRegion, Transcript, CDS, UTR }
 import org.bdgenomics.rice.models.{ KmerIndex, IndexMap }
-import org.bdgenomics.rice.algorithms.alignment.AlignmentModel
+import org.bdgenomics.rice.algorithms.alignment.{AlignmentModel, SimpleAlignmentModel}
 import org.bdgenomics.rice.utils.riceFunSuite
 import net.fnothaft.ananas.models._
 import net.fnothaft.ananas.avro.{Kmer, Backing}
@@ -142,5 +142,24 @@ class QuantifySuite extends riceFunSuite {
     // Should record 8 kmers in total
     assert( m(0)._2("ctg") + m(1)._2("ctg") == 8)
 
+  }
+
+  sparkTest("Testing SimpleAlignmentModel") {
+    val testSeq = "ACACTGTGGGTACACTACGAGA"
+    val ar = Array({AlignmentRecord.newBuilder()
+                            .setSequence(testSeq)
+                            .build()})
+
+    val reads = sc.parallelize(ar)
+
+    val (imap, tmap) = createTestIndex(testSeq)
+
+    val kmerIndex = IndexMap(16, imap)
+
+    val m = Mapper(reads, kmerIndex, SimpleAlignmentModel).collect()
+
+    // All 7 kmers in this read came from transcript "Ctg", readLength = 22, kmerLength = 16
+    // so likelihood = 7 / (22 - 16 + 1) = 1
+    assert( m(0)._2("ctg") == 1D )
   }
 }
