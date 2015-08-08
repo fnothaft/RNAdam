@@ -35,10 +35,11 @@ object SimpleAlignmentModel extends AlignmentModel {
   	val ar = iter.toArray
 
   	val readLength = ar.map( c => c.kmerLength ).reduce(_ + _) // Length of read
+  	val kLength = ar(0).kmerLength // kmerLength
   	
   	ar.flatMap( c => kmerIndex.getTranscripts(c) )  // Iter[ (TranscriptId, Count) ]
   	  .map( c => (c._1, 1L) )						// Iter[ (TranscriptId, 1L)]
   	  .groupBy(_._1)								// Map[ TranscriptId -> Array(TranscriptId, 1) ]
-  	  .map( t => (t._1, likelihood(t._2.size, readLength) ) ) // Map[ TranscriptId -> likelihood ]
+  	  .map( t => (t._1, likelihood(t._2.size, readLength, kLength) ) ) // Map[ TranscriptId -> likelihood ]
   }
 }
