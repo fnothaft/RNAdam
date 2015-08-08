@@ -81,7 +81,7 @@ class QuantifySuite extends riceFunSuite {
 
     // Test kmer mapping
     val imers = testSeq.sliding(16).map(s => IntMer(s))
-    println(imap)
+ 
     assert( imap.size == 7 ) // 7 kmers of length 16
     assert( imers.forall(i => imap(i.longHash)("ctg") == 1) )
 
