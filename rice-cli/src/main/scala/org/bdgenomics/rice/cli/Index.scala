@@ -56,7 +56,7 @@ class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] wi
   def run(sc: SparkContext) {
     // load gene annotations and transform to contig fragments
     val contigFragments = LoadingContigs.time {
-      ContigFragment.loadFromFile(sc, args.genes)
+      ContigFragment.loadFromFile(sc, args.genome)
     }
 
     // load gene annotations and transform to transcripts
