@@ -46,15 +46,11 @@ class IndexArgs extends Args4jBase {
   @Argument(required = true, metaVar = "GENES", usage = "The gene description file to use.", index = 1)
   var genes: String = null
 
-  @Argument(required = true, metaVar = "KMER_LENGTH", usage = "The k-mer length to use for indexing.", index = 2)
-  var kmerLength: Int = 0
-
   @Argument(required = true, metaVar = "OUTPUT", usage = "The location to write the index to.", index = 3)
   var output: String = null
 }
 
 class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] with Logging {
-  val companion = Index
 
   def run(sc: SparkContext) {
     // load gene annotations and transform to contig fragments
