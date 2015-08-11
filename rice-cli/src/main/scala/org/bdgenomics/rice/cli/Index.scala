@@ -50,7 +50,8 @@ class IndexArgs extends Args4jBase {
   var output: String = null
 }
 
-class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] with Logging {
+class Index(protected val args: IndexArgs) extends BDGSparkCommand[IndexArgs] with Logging { 
+  val companion = Index 
 
   def run(sc: SparkContext) {
     // load gene annotations and transform to contig fragments
