@@ -46,7 +46,7 @@ class IndexArgs extends Args4jBase {
   @Argument(required = true, metaVar = "GENES", usage = "The gene description file to use.", index = 1)
   var genes: String = null
 
-  @Argument(required = true, metaVar = "OUTPUT", usage = "The location to write the index to.", index = 3)
+  @Argument(required = true, metaVar = "OUTPUT", usage = "The location to write the index to.", index = 2)
   var output: String = null
 }
 
