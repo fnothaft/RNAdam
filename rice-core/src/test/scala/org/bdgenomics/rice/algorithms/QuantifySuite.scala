@@ -136,7 +136,7 @@ class QuantifySuite extends riceFunSuite {
         assert(kMap.size == 2)
 
         // The two values should correspond to the two sequence names
-        val names = kMap.map( m => m._1)
+        val names = kMap.map( m => m._1).toList
         assert( names.contains(name1) && names.contains(name2) )
 
         // Each sequence should have two occurrences each
