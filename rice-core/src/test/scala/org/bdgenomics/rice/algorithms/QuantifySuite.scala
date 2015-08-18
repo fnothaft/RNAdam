@@ -116,9 +116,9 @@ class QuantifySuite extends riceFunSuite {
     val transcripts = sc.parallelize(tx)
 
     val repeat = "AAAAAAAAAAAAAAAA"
-    val repeatHash = Intmer(repeat).longHash
-    val seq1Hashes = Intmer.fromSequence(seq1).map(i => i.longHash)
-    val seq2Hashes = Intmer.fromSequence(seq2).map(i => i.longHash)
+    val repeatHash = IntMer(repeat).longHash
+    val seq1Hashes = IntMer.fromSequence(seq1).map(i => i.longHash)
+    val seq2Hashes = IntMer.fromSequence(seq2).map(i => i.longHash)
 
     val (imap, tmap) = Index(frags, transcripts)
 
