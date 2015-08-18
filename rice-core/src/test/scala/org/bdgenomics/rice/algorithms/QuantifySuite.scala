@@ -124,7 +124,7 @@ class QuantifySuite extends riceFunSuite {
 
     // With a kmer length of 16, we should have 33 + 18 kmers of which 4 are repeats of AAAAAAAAAAAAAAAA
     assert( imap.size == 33 + 18 - 4 + 1)
-    imap.forall( v => {
+    imap.foreach( v => {
       val kHash = v._1
       val kMap = v._2
       // Assert that the kmer exists in the sequences we have presented
