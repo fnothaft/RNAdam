@@ -106,7 +106,7 @@ class QuantifySuite extends riceFunSuite {
   sparkTest("Less Simple Test of Index") {
     // Two sequences with repeats of kmer AAAAAAAAAAAAAAAA
     val seq1 = "AAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGGAAAAAAAAAAAAAAAA"
-    val seq2 = "AAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG"
+    val seq2 = "AAAAAAAAAAAAAAAAACCCCCCCCCCCCCCCC"
     val name1 = "seq1"
     val name2 = "seq2"
     val frags = sc.parallelize( Seq( createContigFragment(seq1, name1) , createContigFragment(seq2, name2) ) )
