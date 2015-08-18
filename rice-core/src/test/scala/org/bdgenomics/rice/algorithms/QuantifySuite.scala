@@ -56,6 +56,19 @@ class QuantifySuite extends riceFunSuite {
                        Option(fragment.getFragmentStartPosition).fold(0)(_.toInt))
   }
 
+  def createContigFragment(sequence: String, name: String) : ContigFragment = {
+    val ncf = NucleotideContigFragment.newBuilder()
+      .setContig(Contig.newBuilder()
+      .setContigName(name)
+      .build())
+      .setFragmentNumber(0)
+      .setNumberOfFragmentsInContig(1)
+      .setFragmentSequence(sequence)
+      .build()
+
+    buildFromNCF(ncf)
+  }
+
   def createTestIndex(sequence: String = "ACACTGTGGGTACACTACGAGA") : (Map[Long, Map[String, Long]], Map[String, Transcript]) = {
     val ncf = NucleotideContigFragment.newBuilder()
       .setContig(Contig.newBuilder()
@@ -88,6 +101,60 @@ class QuantifySuite extends riceFunSuite {
     // Test transcript mapping
     assert( tmap("one").id == "one")
     assert( tmap("two").id == "two")
+  }
+
+  sparkTest("Less Simple Test of Index") {
+    // Two sequences with repeats of kmer AAAAAAAAAAAAAAAA
+    val seq1 = "AAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGGAAAAAAAAAAAAAAAA"
+    val seq2 = "AAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG"
+    val name1 = "seq1"
+    val name2 = "seq2"
+    val frags = sc.parallelize( Seq( createContigFragment(seq1, name1) , createContigFragment(seq2, name2) ) )
+
+    val tx = Seq( Transcript("one", Seq("one"), "gene1", true, Iterable[Exon](), Iterable[CDS](), Iterable[UTR]()) ,
+                  Transcript("two", Seq("two"), "gene1", true, Iterable[Exon](), Iterable[CDS](), Iterable[UTR]()) )
+    val transcripts = sc.parallelize(tx)
+
+    val repeat = "AAAAAAAAAAAAAAAA"
+    val repeatHash = Intmer(repeat).longHash
+    val seq1Hashes = Intmer.fromSequence(seq1).map(i => i.longHash)
+    val seq2Hashes = Intmer.fromSequence(seq2).map(i => i.longHash)
+
+    val (imap, tmap) = Index(frags, transcripts)
+
+    // With a kmer length of 16, we should have 33 + 18 kmers of which 4 are repeats of AAAAAAAAAAAAAAAA
+    assert( imap.size == 33 + 18 - 4 + 1)
+    imap.forall( v => {
+      val kHash = v._1
+      val kMap = v._2
+      // Assert that the kmer exists in the sequences we have presented
+      assert( seq1Hashes.contains(kHash) || seq2Hashes.contains(kHash) )
+
+      // Check if the kmer is the repeat
+      if (kHash == repeatHash) {
+        // Should have two values (one for each sequence the repeat was found in)
+        assert(kMap.size == 2)
+
+        // The two values should correspond to the two sequence names
+        val names = kMap.map( m => m._1)
+        assert( names(name1) && names(name2) )
+
+        // Each sequence should have two occurrences each
+        assert(kMap(name1) == 2 && kMap(name2) == 2)
+      }
+      else {
+        // If the kmer is not the repeat, then it should only have one value in map
+        assert(kMap.size == 1)
+
+        // The value should correspond to one of the two sequence names
+        val names = kMap.toList(0)
+        assert( names._1 == name1 || names._1 == name2 )
+
+        // The sequence should have one occurrence
+        assert( names._2 == 1)
+      }
+
+      })
   }
 
   sparkTest("Simple Test of Mapper") {
