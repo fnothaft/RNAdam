@@ -67,12 +67,12 @@ object Index extends Serializable with Logging {
   def computeVertexMapping(graph: Graph[ColoredKmerVertex, Unit]): Map[Long, Map[String, Long]] = {
 
     VertexMapping.time { 
-      graph.vertices                                       // RDD[ kmerHash, ColoredKmerVertex ]                         
-           .flatMap(v => (v._1, { v._2.terminals.map( t => (t._1, 1L) ) ++ v._2.stronglyConnected.map( t => (t._1._1, 1L) ) } // RDD[ kmerHash, List[ color, 1 ] ]
-                                .reduceByKey(_ + _)        // RDD[ kmerHash, List[ color, num occurrences ] ]
-                                .toMap) )                  // RDD[ kmerHash, Map[color, num occurrences] ]                                                                                
-           .collect().toMap                                // Map[ kmerHash, Map[color, num occurrences] ]
-    }
+      graph.vertices                                                                  // RDD[ kmerHash, ColoredKmerVertex ]                         
+           .flatMap(v => (v._1, { v._2.terminals.toList.map( t => (t._1, 1L) ) ++ v._2.stronglyConnected.toList.map( t => (t._1._1, 1L) ) } // RDD[ kmerHash, Set[ color, 1 ] ]
+                                .groupBy(_._1)                                        // RDD[ kmerHash, Map[ color -> Seq( color, 1 )] ]
+                                .map(_._2.reduce( (a, b) => (a._1, a._2 + b._2) ))) ) // RDD[ kmerHash, Map[ color -> num occurrences] ]                                                                               
+           .collect().toMap                                                           // Map[ kmerHash, Map[color, num occurrences] ]
+    }     
   }
 
   /** 
